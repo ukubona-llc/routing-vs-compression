@@ -19,7 +19,20 @@
     --text-mid: #b7b0c4;
     --text-low: #756e87;
   }
+  html[data-theme="light"]{
+    --bg: #f6f2e8;
+    --bg-raised: #ffffff;
+    --bg-inset: #eee8d8;
+    --hairline: #ddd3ba;
+    --amber: #a5721c;
+    --violet: #6656c4;
+    --teal: #1f8a7d;
+    --text-hi: #211d2b;
+    --text-mid: #4d4660;
+    --text-low: #8b8298;
+  }
   *{box-sizing:border-box;}
+  html{ transition: background .25s ease; }
   body{
     margin:0;
     background:
@@ -29,6 +42,7 @@
     color:var(--text-hi);
     font-family:'DM Sans', sans-serif;
     line-height:1.6;
+    transition: background .25s ease, color .25s ease;
   }
   a{color:var(--teal);}
 
@@ -67,25 +81,55 @@
     color:var(--amber); opacity:0.85; letter-spacing:0.01em;
   }
 
-  /* ===== Tabs ===== */
-  .tabbar{
-    max-width:900px; margin:0 auto; padding:0 28px;
-    display:flex; gap:2px; flex-wrap:wrap;
-    border-bottom:1px solid var(--hairline);
+  /* ===== Header controls: theme toggle + waffle grid ===== */
+  .header-controls{ display:flex; align-items:flex-start; gap:10px; flex-shrink:0; position:relative; }
+
+  .theme-toggle{
+    width:36px; height:36px; border-radius:50%; border:1px solid var(--hairline);
+    background:var(--bg-raised); color:var(--text-mid); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:color .15s, border-color .15s;
   }
-  .tab{
-    font-family:'DM Mono', monospace; font-size:12.5px; letter-spacing:0.04em;
-    color:var(--text-low); background:none; border:none; cursor:pointer;
-    padding:13px 18px; border-bottom:2px solid transparent; transition:color .15s, border-color .15s;
+  .theme-toggle:hover{ color:var(--amber); border-color:var(--amber); }
+  .theme-toggle svg{ width:16px; height:16px; }
+  .theme-toggle .icon-moon{ display:none; }
+  html[data-theme="light"] .theme-toggle .icon-sun{ display:none; }
+  html[data-theme="light"] .theme-toggle .icon-moon{ display:block; }
+
+  .waffle-wrap{ position:relative; }
+  .waffle-btn{
+    width:36px; height:36px; border-radius:8px; border:1px solid var(--hairline);
+    background:var(--bg-raised); cursor:pointer; display:grid;
+    grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr);
+    gap:3px; padding:9px; place-items:center; transition:border-color .15s;
   }
-  .tab:hover{ color:var(--text-mid); }
-  .tab.active{ color:var(--text-hi); border-bottom-color:var(--amber); }
-  .tab .dot{ display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:7px; vertical-align:middle; }
+  .waffle-btn:hover{ border-color:var(--amber); }
+  .waffle-btn span{ width:4px; height:4px; border-radius:50%; background:var(--text-mid); transition:background .15s; }
+  .waffle-btn:hover span{ background:var(--amber); }
+
+  .waffle-menu{
+    position:absolute; top:44px; right:0; z-index:30;
+    display:none; grid-template-columns:repeat(3, 82px); gap:2px;
+    background:var(--bg-raised); border:1px solid var(--hairline); border-radius:12px; padding:10px;
+    box-shadow:0 16px 40px rgba(0,0,0,0.4);
+  }
+  .waffle-menu.open{ display:grid; }
+  .waffle-tile{
+    display:flex; flex-direction:column; align-items:center; gap:7px;
+    background:none; border:none; border-radius:9px; padding:12px 4px; cursor:pointer;
+    font-family:'DM Mono', monospace; font-size:10px; letter-spacing:0.02em; color:var(--text-mid);
+    text-align:center; transition:background .15s, color .15s;
+  }
+  .waffle-tile:hover{ background:var(--bg-inset); color:var(--text-hi); }
+  .waffle-tile.active{ color:var(--text-hi); }
+  .tile-dot{ width:18px; height:18px; border-radius:50%; flex-shrink:0; }
+  .waffle-tile.active .tile-dot{ box-shadow:0 0 0 3px var(--bg-inset); }
 
   /* ===== Panels ===== */
   main{ max-width:900px; margin:0 auto; padding:36px 28px 100px; }
   .panel{ display:none; }
   .panel.active{ display:block; }
+  .view{ display:none; }
+  .view.active{ display:block; }
 
   .speaker-head{
     display:flex; align-items:center; justify-content:space-between;
@@ -181,7 +225,7 @@
       <circle cx="50" cy="50" r="2.4" fill="#d9a441"/>
     </svg>
   </div>
-  <div>
+  <div style="flex:1;">
     <p class="masthead-eyebrow">Ukubona LLC · Append-Only Ledger</p>
     <h1>Territory, Map, Colony</h1>
     <p class="masthead-sub">Ledger 014 · Aug 01 2026 · Roundtable Record — Not for Accuracy, For Provocation</p>
@@ -192,17 +236,31 @@
       <b>Territory / Sugar</b> → Map 1 / Pheromones → Which / Colony → Map 2 / Explorers → <b>Falsifiable / Action</b>
     </div>
   </div>
+
+  <div class="header-controls">
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark theme" title="Toggle theme">
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+
+    <div class="waffle-wrap">
+      <button class="waffle-btn" id="waffleBtn" aria-label="Switch interlocutor" aria-haspopup="true" title="Switch interlocutor">
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+      </button>
+      <div class="waffle-menu" id="waffleMenu" role="menu">
+        <button class="waffle-tile active" data-tab="ukubona" role="menuitem"><span class="tile-dot" style="background:var(--amber)"></span>Ukubona</button>
+        <button class="waffle-tile" data-tab="xai" role="menuitem"><span class="tile-dot" style="background:#8a8194"></span>xAI</button>
+        <button class="waffle-tile" data-tab="gemini" role="menuitem"><span class="tile-dot" style="background:#8a8194"></span>Gemini</button>
+        <button class="waffle-tile" data-tab="openai" role="menuitem"><span class="tile-dot" style="background:#8a8194"></span>OpenAI</button>
+        <button class="waffle-tile" data-tab="anthropic" role="menuitem"><span class="tile-dot" style="background:var(--teal)"></span>Anthropic</button>
+      </div>
+    </div>
+  </div>
 </header>
 
 <p class="epigraph">Okubala si Kulaba — counting is not seeing.</p>
-
-<div class="tabbar" role="tablist">
-  <button class="tab active" data-tab="ukubona" role="tab"><span class="dot" style="background:var(--amber)"></span>Ukubona</button>
-  <button class="tab" data-tab="xai" role="tab"><span class="dot" style="background:var(--text-low)"></span>xAI</button>
-  <button class="tab" data-tab="gemini" role="tab"><span class="dot" style="background:var(--text-low)"></span>Google · Gemini</button>
-  <button class="tab" data-tab="openai" role="tab"><span class="dot" style="background:var(--text-low)"></span>OpenAI</button>
-  <button class="tab" data-tab="anthropic" role="tab"><span class="dot" style="background:var(--teal)"></span>Anthropic</button>
-</div>
 
 <main>
 
@@ -495,15 +553,32 @@
 </footer>
 
 <script>
-  const tabs = document.querySelectorAll('.tab');
   const panels = document.querySelectorAll('.panel');
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
+  const waffleBtn = document.getElementById('waffleBtn');
+  const waffleMenu = document.getElementById('waffleMenu');
+  const waffleTiles = document.querySelectorAll('.waffle-tile');
+
+  waffleBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    waffleMenu.classList.toggle('open');
+  });
+  waffleMenu.addEventListener('click', (e) => e.stopPropagation());
+  document.addEventListener('click', () => waffleMenu.classList.remove('open'));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') waffleMenu.classList.remove('open'); });
+
+  waffleTiles.forEach(tile => {
+    tile.addEventListener('click', () => {
+      waffleTiles.forEach(t => t.classList.remove('active'));
       panels.forEach(p => p.classList.remove('active'));
-      tab.classList.add('active');
-      document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+      tile.classList.add('active');
+      document.getElementById('panel-' + tile.dataset.tab).classList.add('active');
+      waffleMenu.classList.remove('open');
     });
+  });
+
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const html = document.documentElement;
+    html.dataset.theme = html.dataset.theme === 'light' ? 'dark' : 'light';
   });
 
   document.querySelectorAll('.view-toggle').forEach(group => {
