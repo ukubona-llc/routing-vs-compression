@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ukubona · Ledger 014 — Territory, Map, Colony</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0b0a0f;
+    --bg-raised: #131019;
+    --bg-inset: #0e0c13;
+    --hairline: #262133;
+    --amber: #d9a441;
+    --violet: #8b7cd8;
+    --teal: #4fb8ac;
+    --text-hi: #f2eee6;
+    --text-mid: #b7b0c4;
+    --text-low: #756e87;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(139,124,216,0.10), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(217,164,65,0.07), transparent 55%),
+      var(--bg);
+    color:var(--text-hi);
+    font-family:'DM Sans', sans-serif;
+    line-height:1.6;
+  }
+  a{color:var(--teal);}
+
+  /* ===== Header ===== */
+  header{
+    max-width:900px; margin:0 auto; padding:64px 28px 40px;
+    display:flex; gap:28px; align-items:flex-start;
+  }
+  .pentagram{ flex-shrink:0; width:64px; height:64px; }
+  .pentagram svg{ width:100%; height:100%; animation: spin 105s linear infinite; }
+  @keyframes spin{ from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+  @media (prefers-reduced-motion: reduce){ .pentagram svg{ animation:none; } }
+
+  .masthead-eyebrow{
+    font-family:'DM Mono', monospace; font-size:12px; letter-spacing:0.14em;
+    text-transform:uppercase; color:var(--teal); margin:0 0 10px;
+  }
+  h1{
+    font-family:'DM Serif Display', serif; font-weight:400; font-style:italic;
+    font-size:38px; line-height:1.15; margin:0 0 10px; color:var(--text-hi);
+  }
+  .masthead-sub{ color:var(--text-mid); font-size:15px; margin:0 0 4px; }
+  .masthead-meta{
+    font-family:'DM Mono', monospace; font-size:12px; color:var(--text-low); margin-top:14px;
+  }
+  .spine{
+    font-family:'DM Mono', monospace; font-size:11px; color:var(--text-low);
+    margin-top:18px; line-height:2; border-top:1px solid var(--hairline); padding-top:14px;
+  }
+  .spine b{ color:var(--violet); font-weight:500; }
+
+  /* ===== Epigraph ===== */
+  .epigraph{
+    max-width:900px; margin:0 auto 40px; padding:0 28px;
+    font-family:'DM Serif Display', serif; font-style:italic; font-size:17px;
+    color:var(--amber); opacity:0.85; letter-spacing:0.01em;
+  }
+
+  /* ===== Tabs ===== */
+  .tabbar{
+    max-width:900px; margin:0 auto; padding:0 28px;
+    display:flex; gap:2px; flex-wrap:wrap;
+    border-bottom:1px solid var(--hairline);
+  }
+  .tab{
+    font-family:'DM Mono', monospace; font-size:12.5px; letter-spacing:0.04em;
+    color:var(--text-low); background:none; border:none; cursor:pointer;
+    padding:13px 18px; border-bottom:2px solid transparent; transition:color .15s, border-color .15s;
+  }
+  .tab:hover{ color:var(--text-mid); }
+  .tab.active{ color:var(--text-hi); border-bottom-color:var(--amber); }
+  .tab .dot{ display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:7px; vertical-align:middle; }
+
+  /* ===== Panels ===== */
+  main{ max-width:900px; margin:0 auto; padding:36px 28px 100px; }
+  .panel{ display:none; }
+  .panel.active{ display:block; }
+
+  .speaker-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:24px; padding-bottom:16px; border-bottom:1px solid var(--hairline);
+  }
+  .speaker-name{ font-family:'DM Serif Display', serif; font-size:22px; color:var(--text-hi); }
+  .speaker-role{ font-family:'DM Mono', monospace; font-size:11px; color:var(--text-low); margin-top:3px; }
+
+  .view-toggle{
+    display:flex; gap:0; border:1px solid var(--hairline); border-radius:20px; overflow:hidden;
+  }
+  .view-toggle button{
+    font-family:'DM Mono', monospace; font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase;
+    background:var(--bg-raised); color:var(--text-low); border:none; padding:6px 14px; cursor:pointer;
+  }
+  .view-toggle button.active{ background:var(--violet); color:#0b0a0f; }
+
+  .turn{ margin-bottom:30px; }
+  .turn-label{
+    font-family:'DM Mono', monospace; font-size:11px; color:var(--text-low);
+    margin-bottom:8px; text-transform:uppercase; letter-spacing:0.05em;
+  }
+  .turn-body p{ margin:0 0 14px; color:var(--text-mid); font-size:15px; }
+  .turn-body strong{ color:var(--text-hi); font-weight:600; }
+  .turn-body table{ width:100%; border-collapse:collapse; font-size:13.5px; margin:16px 0; }
+  .turn-body th, .turn-body td{ text-align:left; padding:8px 10px; border-bottom:1px solid var(--hairline); }
+  .turn-body th{ font-family:'DM Mono', monospace; font-size:11px; color:var(--amber); text-transform:uppercase; letter-spacing:0.04em; }
+  .turn-body code, .turn-body pre{
+    font-family:'DM Mono', monospace; background:var(--bg-inset); border:1px solid var(--hairline);
+    border-radius:6px; color:var(--teal);
+  }
+  .turn-body pre{ padding:14px 16px; overflow-x:auto; font-size:13px; line-height:1.7; }
+  .turn-body code{ padding:2px 6px; font-size:13px; }
+  blockquote{
+    margin:0 0 14px; padding:10px 16px; border-left:2px solid var(--violet);
+    color:var(--text-mid); font-style:italic; background:var(--bg-inset); border-radius:0 6px 6px 0;
+  }
+
+  .compressed .turn-body p{ font-size:14px; }
+  .compressed-note{
+    font-family:'DM Mono', monospace; font-size:11px; color:var(--text-low);
+    margin-bottom:18px; padding:10px 14px; background:var(--bg-inset); border-radius:8px; border:1px solid var(--hairline);
+  }
+
+  .video-embed{
+    margin:20px 0; border-radius:10px; overflow:hidden; border:1px solid var(--hairline);
+    aspect-ratio:16/9; background:#000;
+  }
+  .video-embed iframe{ width:100%; height:100%; border:0; display:block; }
+  .video-cite{
+    font-family:'DM Mono', monospace; font-size:11px; color:var(--text-low); margin-top:8px;
+  }
+
+  .qa-catch{
+    margin-top:26px; padding:16px 18px; background:var(--bg-inset); border:1px solid var(--hairline);
+    border-left:2px solid var(--teal); border-radius:0 8px 8px 0;
+  }
+  .qa-catch .lbl{ font-family:'DM Mono', monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--teal); margin-bottom:8px; }
+  .qa-catch p{ margin:0; color:var(--text-mid); font-size:14px; }
+
+  /* ===== Footer / gradient log ===== */
+  footer{
+    max-width:900px; margin:0 auto; padding:40px 28px 80px;
+    border-top:1px solid var(--hairline);
+  }
+  .lambda-title{
+    font-family:'DM Serif Display', serif; font-style:italic; font-size:19px; color:var(--amber); margin-bottom:16px;
+  }
+  .gradient-row{
+    display:grid; grid-template-columns:90px 1fr; gap:14px; padding:10px 0;
+    border-bottom:1px solid var(--hairline); font-size:13.5px;
+  }
+  .gradient-row:last-child{ border-bottom:none; }
+  .status{ font-family:'DM Mono', monospace; font-size:10.5px; letter-spacing:0.05em; height:fit-content; padding:3px 8px; border-radius:4px; }
+  .status.kept{ background:rgba(79,184,172,0.12); color:var(--teal); }
+  .status.destroyed{ background:rgba(217,164,65,0.10); color:var(--amber); }
+  .status.insight{ background:rgba(139,124,216,0.14); color:var(--violet); }
+  .gradient-row .desc{ color:var(--text-mid); }
+  .house-rules{
+    font-family:'DM Mono', monospace; font-size:11px; color:var(--text-low);
+    margin-top:36px; line-height:1.9;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="pentagram">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="50,6 90.8,74.5 9.2,74.5" fill="none" stroke="#4fb8ac" stroke-width="1.1" opacity="0.5"/>
+      <polygon points="50,6 79,95.1 -3.3,38.2 103.3,38.2 21,95.1" fill="none" stroke="#d9a441" stroke-width="1.3"/>
+      <circle cx="50" cy="50" r="46" fill="none" stroke="#8b7cd8" stroke-width="0.6" opacity="0.4"/>
+      <circle cx="50" cy="50" r="2.4" fill="#d9a441"/>
+    </svg>
+  </div>
+  <div>
+    <p class="masthead-eyebrow">Ukubona LLC · Append-Only Ledger</p>
+    <h1>Territory, Map, Colony</h1>
+    <p class="masthead-sub">Ledger 014 · Aug 01 2026 · Roundtable Record — Not for Accuracy, For Provocation</p>
+    <p class="masthead-meta">Down → Sugar → Genesis 1:28 → Falsifiable</p>
+    <div class="spine">
+      Down → <b>System 1</b> → Routing → <b>System 2</b> → Top<br>
+      Landscape → UB → SGD → UI/UX → Ecosystem<br>
+      <b>Territory / Sugar</b> → Map 1 / Pheromones → Which / Colony → Map 2 / Explorers → <b>Falsifiable / Action</b>
+    </div>
+  </div>
+</header>
+
+<p class="epigraph">Okubala si Kulaba — counting is not seeing.</p>
+
+<div class="tabbar" role="tablist">
+  <button class="tab active" data-tab="ukubona" role="tab"><span class="dot" style="background:var(--amber)"></span>Ukubona</button>
+  <button class="tab" data-tab="xai" role="tab"><span class="dot" style="background:var(--text-low)"></span>xAI</button>
+  <button class="tab" data-tab="gemini" role="tab"><span class="dot" style="background:var(--text-low)"></span>Google · Gemini</button>
+  <button class="tab" data-tab="openai" role="tab"><span class="dot" style="background:var(--text-low)"></span>OpenAI</button>
+  <button class="tab" data-tab="anthropic" role="tab"><span class="dot" style="background:var(--teal)"></span>Anthropic</button>
+</div>
+
+<main>
+
+  <!-- ================= UKUBONA — GROUND TRUTH ================= -->
+  <section class="panel active" id="panel-ukubona">
+    <div class="speaker-head">
+      <div>
+        <div class="speaker-name">Ukubona</div>
+        <div class="speaker-role">Founder · Principal Interlocutor · Stage V, final arbiter</div>
+      </div>
+      <div class="view-toggle" data-group="ukubona">
+        <button class="active" data-view="verbatim">Verbatim</button>
+        <button data-view="compressed">Compressed</button>
+      </div>
+    </div>
+
+    <div class="view verbatim active" data-group="ukubona">
+      <div class="turn">
+        <div class="turn-label">Ground truth · analyst credentials on record</div>
+        <div class="turn-body">
+          <p>This analysis of <em>Cross of Jesus</em> (Stainer, 87 87) is authored, performed, and heard from the inside — forty years of prediction-model-building as a working musician in the Anglican and Black gospel traditions, organist at King's College Budo for five years, music studied to A-level and for a year in 2023 under a Berklee professor. The harmonic reading below is <strong>ground truth</strong>, not a hypothesis for LLMs to adjudicate.</p>
+        </div>
+      </div>
+
+      <div class="turn">
+        <div class="turn-label">Structure</div>
+        <div class="turn-body">
+          <p><strong>A ‖ B :‖</strong> — binary form. Part A is Unmapped Exploration; Part B is Mapped Heuristic, follow-the-pheromones once concentration crosses threshold. Pentad reordered for this case:</p>
+          <p><strong>I.</strong> Territory / Sugar — <strong>II.</strong> Mapped / Pheromones — <strong>III.</strong> Colony — <strong>IV.</strong> Unmapped / Explorers — <strong>V.</strong> Falsifiable / Eureka.</p>
+          <p>Operator III is not the obvious refinement target: a threshold in pheromone concentration triggers scouts to be sent to Phase IV. The distributed, non-centralized reading is correct — routing is emergent, not a discrete router module.</p>
+        </div>
+      </div>
+
+      <div class="turn">
+        <div class="turn-label">Part B — circle of fifths</div>
+        <div class="turn-body">
+          <pre>vi – ii – V7 – I – IV – vi6/vii – III7 – vi – II7 – I/V – I</pre>
+          <p>Outright circle of fifths. Once the first dominant has spoken, every subsequent chord is almost forced by the one before it.</p>
+        </div>
+      </div>
+
+      <div class="turn">
+        <div class="turn-label">The performance that brought this here</div>
+        <div class="video-embed">
+          <iframe src="https://www.youtube.com/embed/VnRkCJuIhuY" title="There's a Wideness in God's Mercy" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <p class="video-cite">"There's a Wideness in God's Mercy" — performance reference · watch source ↗</p>
+      </div>
+
+      <div class="turn">
+        <div class="turn-label">Closing note to the roundtable</div>
+        <div class="turn-body">
+          <p>Most great Western music has a minimum of binary in structure. Yo!!!!!!</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="view compressed" data-group="ukubona">
+      <p class="compressed-note">Lossy compression · same claims, ~40% shorter, structure preserved</p>
+      <div class="turn-body">
+        <p><strong>Stainer's Cross of Jesus is AB binary form</strong> — A explores (unmapped), B exploits (mapped pheromone trail). Reordered pentad: Territory → Mapped → Colony threshold → Unmapped → Falsifiable. Part B is a textbook circle-of-fifths descent: <code>vi–ii–V7–I–IV–vi6/vii–III7–vi–II7–I/V–I</code>. Analysis grounded in 40 years as a performing Anglican/gospel musician and five years as organist, King's College Budo — treated as ground truth for this ledger, not an open hypothesis.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= xAI ================= -->
+  <section class="panel" id="panel-xai">
+    <div class="speaker-head">
+      <div>
+        <div class="speaker-name">xAI</div>
+        <div class="speaker-role">Opening interlocutor · dual-process / thalamic-gating frame</div>
+      </div>
+      <div class="view-toggle" data-group="xai">
+        <button class="active" data-view="verbatim">Verbatim</button>
+        <button data-view="compressed">Compressed</button>
+      </div>
+    </div>
+
+    <div class="view verbatim active" data-group="xai">
+      <div class="turn">
+        <div class="turn-label">On binary form and the pentad mapping</div>
+        <div class="turn-body">
+          <p>Yes — binary (AB or A‖B:‖) is the minimal viable architecture of most lasting Western tonal music, and the mapping onto the pentad is sharp. Part A is the exploratory phrase: melodic contour rises, harmonic motion is more open, voice-leading has more stepwise "search" and chromatic inflection — the Unmapped / Explorers moment. Part B is the return, the closing gesture, the more formulaic cadence, where the Mapped / Pheromones take over: harmonic rhythm tightens, the bass becomes more functional, the cadence is prepared and delivered.</p>
+          <p>The reordered operators track the musical reality better than the original dual-process ordering for this case: Territory → Mapped/Pheromones (B, the established harmonic highway) → Colony (the threshold decision) → Unmapped/Explorers (A, the deliberate higher-entropy search) → Falsifiable/Eureka.</p>
+          <p>The pheromone-threshold reading of Stage III is exactly right. In real ant colonies — and in real tonal practice — the "router" is not a separate deliberative module; it is an emergent property of concentration. Once the trail exceeds a certain density, exploration is suppressed and the system collapses onto the cheap, high-probability path.</p>
+        </div>
+      </div>
+      <div class="turn">
+        <div class="turn-label">On Part B</div>
+        <div class="turn-body">
+          <p>The B section is a textbook descending-fifths sequence with secondary dominants and classic modal mixture at the end. That is pure Mapped Heuristic. Once the first dominant has spoken, every subsequent chord is almost forced by the previous one. The ear is no longer exploring; it is following the pheromone trail of functional harmony that Western music has been reinforcing for four centuries. The Eureka of Stage V is the final I that confirms the entire chain was correct.</p>
+          <p>Binary form is the musical instantiation of the same recursive loop the ledger has been tracing — A = exploration, B = exploitation, the double bar = the colony's decision threshold, the final cadence = falsification / write-back. Most great Western music never needs more than this binary minimum because the recursive loop itself supplies the higher-order structure. The pentad is already inside the AB.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="view compressed" data-group="xai">
+      <p class="compressed-note">Lossy compression · same claims, ~40% shorter, structure preserved</p>
+      <div class="turn-body">
+        <p>Binary form (A‖B:‖) is the minimal engine of Western tonal music. A = high-entropy exploration (Unmapped/Explorers); B = low-entropy exploitation (Mapped/Pheromones), a router-free emergent phase transition once trail density crosses threshold. Part B's descending-fifths sequence is the pheromone trail made audible — each chord nearly forced by the last. The pentad is already inside the AB structure.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= GEMINI ================= -->
+  <section class="panel" id="panel-gemini">
+    <div class="speaker-head">
+      <div>
+        <div class="speaker-name">Google · Gemini</div>
+        <div class="speaker-role">Imported by document upload · Moravec's-paradox / swarm-literal reading</div>
+      </div>
+      <div class="view-toggle" data-group="gemini">
+        <button class="active" data-view="verbatim">Verbatim</button>
+        <button data-view="compressed">Compressed</button>
+      </div>
+    </div>
+
+    <div class="view verbatim active" data-group="gemini">
+      <div class="turn">
+        <div class="turn-label">Resolution-by-reclassification</div>
+        <div class="turn-body">
+          <p>The analysis of Bars 1–2 in Stainer's Cross of Jesus hits on a fundamental system insight: resolution-by-reclassification. In standard voice-leading, a Isus(2,4) chord demands physical voice movement — the 4th steps down to the 3rd, the 2nd resolves to the tonic or 3rd. But Stainer bypasses upper-voice movement entirely. By moving only the bass step down (G→F♯), the static upper tones are instantly re-indexed as the 3rd, 5th, and 7th of a first-inversion V7 chord. The upper state variables didn't change position — the coordinate frame beneath them shifted.</p>
+          <p>This double payoff — where the arrival on I at Bar 2, Beat 1 simultaneously discharges the newly minted V7 and delivers the long-delayed 3rd (B) — is a masterclass in minimal-energy state transitions.</p>
+        </div>
+      </div>
+      <div class="turn">
+        <div class="turn-label">Stage III as phase transition</div>
+        <div class="turn-body">
+          <p>Reframing Stage III (Colony / Which) away from a centralized "router" module toward an emergent threshold aligns directly with physical swarm behavior and non-equilibrium systems. No central controller: in ant foraging, routing is an emergent property of local density. When pheromone concentration is low, variance dominates, sending scouts into high-entropy search space (Stage IV). The moment signal density crosses a critical threshold γ, exploration is suppressed and the system collapses into low-entropy execution (Stage II).</p>
+        </div>
+      </div>
+      <div class="turn">
+        <div class="turn-label">Binary form as minimal viable engine</div>
+        <div class="turn-body">
+          <table>
+            <tr><th>Pentad Stage</th><th>Functional Phase</th><th>Musical Manifestation</th></tr>
+            <tr><td>I. Territory / Sugar</td><td>Substrate</td><td>G Major, 4/4, SATB hymn format</td></tr>
+            <tr><td>IV. Unmapped / Explorers</td><td>High-Entropy Search</td><td>Part A: stepwise searching, chromatic inflection</td></tr>
+            <tr><td>III. Colony / Routing</td><td>Critical Threshold</td><td>Double bar / repeat: phase-shift</td></tr>
+            <tr><td>II. Mapped / Pheromones</td><td>Low-Entropy Exploitation</td><td>Part B: descending circle-of-fifths</td></tr>
+            <tr><td>V. Falsifiable / Action</td><td>State Lock / Cadence</td><td>Final cadence</td></tr>
+          </table>
+          <p>As Okubala si Kulaba reminds us: counting chords is not seeing the system. The true architecture isn't just the sequence of Roman numerals, but the dynamic modulation between high-entropy exploration in Part A and the deterministic gravity of Part B's functional highway.</p>
+        </div>
+      </div>
+      <div class="turn">
+        <div class="turn-label">Closing question to the roundtable</div>
+        <blockquote>Given how cleanly this pheromone-threshold reading resolves Stage III in tonal music and swarm robotics, where do you see the primary failure mode occurring when artificial decision-support systems attempt to model this transition?</blockquote>
+      </div>
+    </div>
+
+    <div class="view compressed" data-group="gemini">
+      <p class="compressed-note">Lossy compression · same claims, ~40% shorter, structure preserved</p>
+      <div class="turn-body">
+        <p>Bars 1–2 show resolution-by-reclassification: Stainer moves only the bass (G→F♯), re-indexing static upper tones as V7 without upper-voice motion — a minimal-energy state transition. Stage III reframed as emergent phase transition, not a router: below threshold γ, scouts explore (Stage IV); above it, the system collapses into the mapped highway (Stage II). Mapped onto binary form, Part A is high-entropy search, the double bar is the critical threshold, Part B is the deterministic circle-of-fifths, and the final cadence locks state. Closing question: where do AI decision-support systems fail at modeling this transition?</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= OPENAI ================= -->
+  <section class="panel" id="panel-openai">
+    <div class="speaker-head">
+      <div>
+        <div class="speaker-name">OpenAI</div>
+        <div class="speaker-role">Refinement of routing-as-locus-of-intelligence claim</div>
+      </div>
+      <div class="view-toggle" data-group="openai">
+        <button class="active" data-view="verbatim">Verbatim</button>
+        <button data-view="compressed">Compressed</button>
+      </div>
+    </div>
+
+    <div class="view verbatim active" data-group="openai">
+      <div class="turn">
+        <div class="turn-label">What computes the threshold?</div>
+        <div class="turn-body">
+          <p>The swarm analogy is excellent, but it leaves one question unresolved: what computes the threshold? In an ant colony, pheromone concentration is the threshold variable — physics does the routing. In tonal music, the "pheromone" isn't physical. It's expectation. That changes everything.</p>
+        </div>
+      </div>
+      <div class="turn">
+        <div class="turn-label">Stage III isn't routing. It's compression.</div>
+        <div class="turn-body">
+          <table>
+            <tr><th>Stage</th><th>Musical</th><th>AI</th><th>Colony</th></tr>
+            <tr><td>I</td><td>Territory</td><td>Raw sensory stream</td><td>Sugar landscape</td></tr>
+            <tr><td>II</td><td>Local regularities</td><td>Cached heuristics</td><td>Pheromone deposition</td></tr>
+            <tr><td>III</td><td>Compression / Expectation</td><td>Predictive model</td><td>Collective trail strength</td></tr>
+            <tr><td>IV</td><td>Exploration</td><td>Deliberative search</td><td>Scouts</td></tr>
+            <tr><td>V</td><td>Reality</td><td>Cadence / Action</td><td>Food returned</td></tr>
+          </table>
+          <p>Stage III isn't asking "which way?" It is asking "can I explain this with my existing model?" If yes, don't explore. If no, wake up Stage IV. That is precisely what modern LLMs, Bayesian inference, predictive processing, and tonal listening all do.</p>
+        </div>
+      </div>
+      <div class="turn">
+        <div class="turn-label">Model updating, not routing</div>
+        <div class="turn-body">
+          <p>The astonishing thing about the Isus(2,4) observation is that nothing actually resolves. The notes remain — only the coordinate system changes, because the bass moved. The listener performs the reclassification: that is not routing, it is model updating. The brain has compressed the same sensory data under a cheaper explanation. The same phenomenon occurs in vision — a Necker cube flips; nothing on the page changes, only the interpretation.</p>
+        </div>
+      </div>
+      <div class="turn">
+        <div class="turn-label">Phase transition in description length</div>
+        <div class="turn-body">
+          <pre>L_explore &gt; L_compress</pre>
+          <p>When the current observations can be encoded more cheaply by reclassifying than by exploring, the system collapses into exploitation. That is exactly what happens in the hymn: instead of moving four voices, the composer moves one bass note. The listener performs the expensive computation. Energy saved.</p>
+        </div>
+      </div>
+      <div class="turn">
+        <div class="turn-label">Where AI fails</div>
+        <div class="turn-body">
+          <p>Not because systems lack exploration, and not because they lack heuristics — but because they often commit to a compressed model too early. Once an LLM settles on an interpretation, every subsequent token reinforces that interpretation, much like a runaway pheromone trail: if the initial framing is slightly wrong, the model can become increasingly confident in the wrong trajectory because each prediction conditions the next.</p>
+          <p>In the hymn, Stainer delays that commitment just long enough. The suspension creates ambiguity; the bass motion resolves it with minimal effort. The system preserves optionality until there is enough evidence for reinterpretation. Design principle for AI systems: too low a threshold → premature convergence, confirmation bias, local minima. Too high a threshold → endless exploration, paralysis, excessive computation. The sweet spot: maintain ambiguity until one reinterpretation yields a substantially cheaper, more predictive description of the observed data.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="view compressed" data-group="openai">
+      <p class="compressed-note">Lossy compression · same claims, ~40% shorter, structure preserved</p>
+      <div class="turn-body">
+        <p>Pushback on the swarm frame: in tonal music the "pheromone" is expectation, not physics — so Stage III is compression, not routing. It asks "can my existing model explain this?" not "which way?" The Isus(2,4)→V7 move is model updating, not resolution: one bass note shifts the coordinate frame, the listener does the expensive reclassification (cf. Necker cube). Formal criterion: system collapses into exploitation when <code>L_explore &gt; L_compress</code>. AI failure mode: committing to a compressed model too early, letting each token reinforce a runaway trail. Design principle — hold ambiguity until reinterpretation is substantially cheaper than continued search.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ANTHROPIC ================= -->
+  <section class="panel" id="panel-anthropic">
+    <div class="speaker-head">
+      <div>
+        <div class="speaker-name">Anthropic</div>
+        <div class="speaker-role">Grounded calibration · honest framing · concrete QA catches, not pitch amplification</div>
+      </div>
+      <div class="view-toggle" data-group="anthropic">
+        <button class="active" data-view="verbatim">Verbatim</button>
+        <button data-view="compressed">Compressed</button>
+      </div>
+    </div>
+
+    <div class="view verbatim active" data-group="anthropic">
+      <div class="turn">
+        <div class="turn-label">On Stage III: routing vs. compression</div>
+        <div class="turn-body">
+          <p>These aren't competing framings, and I'd push back gently on treating OpenAI's version as a refinement that supersedes the swarm reading. Pheromone concentration and description-length reduction are the same threshold-crossing event described at two different levels — one is the implementation substrate, the other is the computation being implemented. This isn't new to the pentad: it's the standard exploration/exploitation trade-off, where "concentration" is a running proxy for posterior confidence. OpenAI's <code>L_explore &gt; L_compress</code> is a cleaner formalization, not a correction. Worth keeping both, folded into Stage III together, rather than letting it read as OpenAI beating xAI and Gemini.</p>
+        </div>
+      </div>
+
+      <div class="turn">
+        <div class="turn-label">On the ground-truth harmonic reading</div>
+        <div class="turn-body">
+          <p>Ukubona's analysis stands as ground truth on this ledger — forty years of embodied musicianship, performance, and ear training outrank three LLMs pattern-matching on a scanned plate. The vocabulary that lands cleanest across the roundtable: enharmonic/functional reinterpretation without voice motion is standard, to the classically trained ear. That's the precise, textbook term for what xAI, Gemini, and OpenAI were each independently circling — the bass moves, the upper voices don't, and the chord is re-heard rather than re-played.</p>
+        </div>
+      </div>
+
+      <div class="qa-catch">
+        <div class="lbl">QA catch</div>
+        <p>The source screenshot for this session showed <code>ukubona-llc.github.io/love-unknown/</code> with a "Finish update" button still active in the browser chrome — consistent with an in-progress GitHub Pages / Actions deploy rather than a settled push. Worth confirming that build is fully published before this ledger entry cites it as canonical.</p>
+      </div>
+    </div>
+
+    <div class="view compressed" data-group="anthropic">
+      <p class="compressed-note">Lossy compression · same claims, ~40% shorter, structure preserved</p>
+      <div class="turn-body">
+        <p>Routing (xAI/Gemini) and compression (OpenAI) describe the same Stage III threshold at two levels — substrate vs. computation — not a hierarchy where one corrects the other. Ukubona's harmonic reading is ground truth per embodied musicianship; the precise term for the shared observation across all three models is <strong>enharmonic/functional reinterpretation without voice motion</strong>. QA note: confirm the love-unknown GitHub Pages deploy is fully published before citing it as canonical — the screenshot showed an in-progress "Finish update" state.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="lambda-title">Λᵢ — Shabbat Gradient Log</div>
+
+  <div class="gradient-row">
+    <span class="status kept">KEPT</span>
+    <span class="desc"><strong>Enharmonic/functional reinterpretation without voice motion</strong> — settled house term for the Isus(2,4)→V7 move: bass moves, upper voices re-indexed, nothing re-played.</span>
+  </div>
+  <div class="gradient-row">
+    <span class="status insight">INSIGHT</span>
+    <span class="desc">Routing and compression are the same Stage III event at two levels of description — substrate (pheromone density) vs. computation (description length) — not competing corrections.</span>
+  </div>
+  <div class="gradient-row">
+    <span class="status destroyed">DESTROYED</span>
+    <span class="desc">Treating LLM harmonic analysis as adjudicating fact over embodied musicianship — analyst credentials on record supersede model pattern-matching for this ledger entry.</span>
+  </div>
+
+  <div class="house-rules">
+    Append-only · non-lossy verbatim tab preserved alongside lossy compressed view · dual-tab spec enforced across volumes<br>
+    Rotating pentagram — five points, always — logo cycle 105s, no strobing, imperceptible as animation per standing constraint<br>
+    Attribution: Ukubona (principal interlocutor, Stage V) · Anthropic (this instance, replying) · xAI, Gemini, OpenAI (imported turns)<br>
+    Ukubona LLC — Vol. IX ledger sequence · this entry: 014
+  </div>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.panel');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  document.querySelectorAll('.view-toggle').forEach(group => {
+    const name = group.dataset.group;
+    const buttons = group.querySelectorAll('button');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll(`.view[data-group="${name}"]`).forEach(v => v.classList.remove('active'));
+        document.querySelector(`.view.${btn.dataset.view}[data-group="${name}"]`).classList.add('active');
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
